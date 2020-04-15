@@ -12,7 +12,7 @@
 #include "vsingleton.h"
 #include "gtlan.h"
 #include <boost/tokenizer.hpp>
-
+// dsvsfgdfg
 
 void work_with_ts(TDatagramPacket2* pck2);
 void send_kzp(const TDatagram2& dtg);
