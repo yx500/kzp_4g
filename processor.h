@@ -12,8 +12,8 @@ class processor: asio_obj
 
 
 public:
-  std::atomic_int kzp_addr;
-  std::atomic_int kzp_value;
+  std::atomic_uint8_t  kzp_addr;
+  std::atomic_uint8_t  kzp_value;
 
 
   processor(aio::io_context& c): asio_obj(c)

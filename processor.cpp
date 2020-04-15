@@ -15,28 +15,33 @@
 
 
 
+void send_kzp(const TDatagram2& kzp)
+{
+  gtlan_send( kzp );
+  std::cout <<"-> "<< kzp.Name << std::endl;
+}
 
-///хреновина
-
-void work_with_ts(TDatagramPacket2* pck2);
-void send_kzp(const TDatagram2& dtg);
 
 void processor::open()
 {
-
-  gtlan_callback_buffun f = [this](TDatagramPacket2* )-> void {};
-
-  gtlan_buf(1, Opt.tsname_address.c_str(),  &f);
-  gtlan_buf(1, Opt.tsname_value.c_str(), &f);
+  gtlan_buf(1, Opt.tsname_address.c_str(), [this](TDatagramPacket2* pck2){ this->kzp_addr.store(pck2->Dtgrm.Data[0]); } );
+  gtlan_buf(1, Opt.tsname_value.c_str(), [this](TDatagramPacket2* pck2){ this->kzp_value.store(pck2->Dtgrm.Data[0]); } );
 }
 
 void processor::close()
 {
-  gtlan_setcallback(nullptr);
+  gtlan_buf(1, Opt.tsname_address.c_str(), nullptr);
+  gtlan_buf(1, Opt.tsname_value.c_str(), nullptr);
 }
 
 void processor::process_polling()
 {
+  static unsigned int tick=0;
+
+
+  uint8_t addr = ++tick % 4;
+
+  boost::asio::io_service::strand strand(this->io_context());
 
 
   //-------------------------------------------------------
@@ -49,9 +54,4 @@ void processor::process_polling()
 }
 
 
-void send_kzp(const TDatagram2& kzp)
-{
-  gtlan_send( kzp );
-  std::cout <<"-> "<< kzp.Name << std::endl;
-}
 
