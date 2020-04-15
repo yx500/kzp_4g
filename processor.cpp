@@ -14,6 +14,10 @@
 #include <boost/tokenizer.hpp>
 
 
+
+
+///хреновина
+
 void work_with_ts(TDatagramPacket2* pck2);
 void send_kzp(const TDatagram2& dtg);
 
