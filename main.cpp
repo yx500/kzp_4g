@@ -32,7 +32,6 @@ int main(int argc, char *argv[])
         processor pro( e.GetIOContext() );
         pro.open();
         e.GetIOContext().post( [&pro]() { pro.process_polling(); } );
-        e.GetIOContext().post( [&pro]() { pro.process_broadcast(); } );
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         e.Run(1);
         pro.close();
