@@ -19,9 +19,11 @@ void send_kzp(const TDatagram2& dtg);
 
 void processor::open()
 {
-  gtlan_buf(1, Opt.tsname_address.c_str(), [this](TDatagramPacket2* )-> void {} );
-  gtlan_buf(1, Opt.tsname_value.c_str(), &work_with_ts);
-  gtlan_setcallback(&work_with_ts);
+
+  gtlan_callback_buffun f = [this](TDatagramPacket2* )-> void {};
+
+  gtlan_buf(1, Opt.tsname_address.c_str(),  &f);
+  gtlan_buf(1, Opt.tsname_value.c_str(), &f);
 }
 
 void processor::close()
@@ -42,15 +44,6 @@ void processor::process_polling()
                             );
 }
 
-
-void work_with_ts(TDatagramPacket2* pck2)
-{
-  std::string slot(pck2->Dtgrm.Name);
-  std::cout <<"ts2kzp_byte: "<< slot
-            << " n" << m.number
-      ;
-
-}
 
 void send_kzp(const TDatagram2& kzp)
 {
