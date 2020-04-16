@@ -8,7 +8,7 @@ struct Options
 
   std::string config_file {"kzp4g.conf"};
   std::string local_address {"0.0.0.0"};
-  int wr_timeout {100};
+  int wr_timeout {1000};
   std::string tsname_address  {"kzp_addr"};
   std::string tsname_value   {"kzp_val"};
 };
