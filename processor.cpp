@@ -8,46 +8,119 @@
 #include <vector>
 #include <algorithm>
 
+#include <boost/tokenizer.hpp>
+#include <boost/bind.hpp>
 #include "opt.h"
 #include "vsingleton.h"
 #include "gtlan.h"
-#include <boost/tokenizer.hpp>
-// dsvsfgdfg
+#include "messageDO.h"
+#include "tKzp2.h"
+#include "helpers.h"
 
-
-//хрень
 
 void processor::open()
 {
-
-  gtlan_callback_buffun f = [this](TDatagramPacket2* )-> void {};
-
-  gtlan_buf(1, Opt.tsname_address.c_str(),  &f);
-  gtlan_buf(1, Opt.tsname_value.c_str(), &f);
+  gtlan_buf(1, Opt.tsname_address.c_str(), [this](TDatagramPacket2* pck2){ this->addr_by_ts.store(pck2->Dtgrm.Data[1]); } );
+  gtlan_buf(1, Opt.tsname_value.c_str(), [this](TDatagramPacket2* pck2){ this->value_by_ts.store(pck2->Dtgrm.Data[1]); } );
 }
 
 void processor::close()
 {
-  gtlan_setcallback(nullptr);
+  gtlan_buf(1, Opt.tsname_address.c_str(), nullptr);
+  gtlan_buf(1, Opt.tsname_value.c_str(), nullptr);
 }
 
-void processor::process_polling()
+
+void processor::begin_step()
 {
+  std::chrono::milliseconds timeout(1); //todo maybe
+  timer_.expires_after(timeout);
+  timer_.async_wait( [this](const std::error_code& ec)
+                    { if(!ec) this->process_step(); }
+                    );
 
-
-  //-------------------------------------------------------
-  std::chrono::milliseconds polling_timeout;
-  polling_timeout = std::chrono::milliseconds(Opt.wr_timeout);
-  polling_timer_.expires_after(polling_timeout);
-  polling_timer_.async_wait( [this](const std::error_code& ec)
-                            { if(!ec) this->process_polling(); }
-                            );
+  std::cout<<" "<<__func__;
 }
 
 
-void send_kzp(const TDatagram2& kzp)
+void processor::process_step()
 {
-  gtlan_send( kzp );
-  std::cout <<"-> "<< kzp.Name << std::endl;
+  static unsigned int tick=0;
+  std::cout<<std::endl<<"---"<<tick;
+  take_addr( (++tick % 8)+1 );
 }
+
+
+void processor::take_addr(uint8_t adr)
+{
+  this->addr = adr;
+  message_DO m{};
+  m.flag=1;
+  m.number=0;
+  m.data[0]=adr;
+  m.commit();
+
+  TDatagram2 qry;
+  qry.setName(Opt.tsname_address);
+  qry.Type=0;
+  qry.setData(m.begin(), m.size());
+  gtlan_send( qry );
+
+  std::chrono::milliseconds timeout(Opt.wr_timeout);
+  timer_.expires_after(timeout);
+  timer_.async_wait( [this](const std::error_code& ec)
+                    { if(!ec) this->read_and_send(); begin_step(); }
+                    );
+
+  std::cout<<" "<<__func__<<addr;
+}
+
+/*
+int suka_kode(uint8_t val){
+  int res;
+  switch(val){
+  default: res=0;
+  case 0b001: res=50;
+  case 0b010: res=100;
+  case 0b011: res=150;
+  case 0b100: res=200;
+  case 0b101: res=250;
+  case 0b110: res=300;
+  case 0b111: res=350;
+  }
+  return res;
+}
+*/
+
+int marshrut(uint8_t addr)
+{
+  int res=addr & 0xf;
+  return res;
+}
+
+
+void processor::read_and_send()
+{
+  int a = this->addr_by_ts.load();
+  int v = this->value_by_ts.load();
+
+  t_KvKzp kzp{};
+  kzp.mar = marshrut(a);
+  kzp.val = v*50;//suka_kode(v);
+  kzp.tim = Vx::timestamp();
+  kzp.addr = this->addr;
+  kzp.val_ks = v;
+
+  TDatagram2 res;
+  res.setName( IpxNameKZP+std::to_string(kzp.mar) );
+  res.Type=IpxTypeKZP;
+  res.setData( &kzp, sizeof(kzp) );
+  gtlan_send( res );
+
+  std::cout<<" "<<__func__<<this->addr<<">"<<a<<"x"<<v;
+}
+
+
+
+
 

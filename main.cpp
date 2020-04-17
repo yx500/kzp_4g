@@ -30,11 +30,9 @@ int main(int argc, char *argv[])
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         processor pro( e.GetIOContext() );
-        pro.open();
-        e.GetIOContext().post( [&pro]() { pro.process_polling(); } );
+        e.GetIOContext().post( [&pro]() { pro.begin_step(); } );
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         e.Run(1);
-        pro.close();
     }
     catch (std::exception& e) {
         std::cerr<<"\nexception: "<<e.what()<<"\n";
