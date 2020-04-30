@@ -18,8 +18,8 @@ class processor: asio_obj
 
 public:
   int  addr;
-  std::atomic_uint8_t  addr_by_ts;
-  std::atomic_uint8_t  value_by_ts;
+  volatile std::atomic_uint8_t  addr_by_ts;
+  volatile std::atomic_uint8_t  value_by_ts;
 
   processor(aio::io_context& c): asio_obj(c), timer_(c) { open(); }
   ~processor() { close(); }
