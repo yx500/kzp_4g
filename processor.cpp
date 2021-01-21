@@ -9,7 +9,7 @@
 #include <algorithm>
 
 #include <boost/tokenizer.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include "opt.h"
 #include "vsingleton.h"
 #include "gtlan.h"
